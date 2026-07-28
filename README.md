@@ -7,11 +7,13 @@ Full project details, features, and usage are in [PROJECT.md](./PROJECT.md). Thi
 Assumes you've got `index.html`, `script.js` and `PROJECT.md` locally.
 
 <!--
-screenshots
+  Add your screenshots to a `screenshots/` folder in the repo root, then
+  update the paths below to match your actual filenames. Delete this
+  comment once done.
 -->
 
-![QueryForge — screenshots](./screenshots/input-panel.png)
-![QueryForge — generated query and results](./screenshots/results-panel.png)
+![QueryForge — screenshots](./screenshots/ss1.jpeg)
+![QueryForge — generated query and results](./screenshots/ss2.jpeg)
 
 ## Prereqs
 
@@ -104,7 +106,7 @@ git push -u origin main
 ## Repo settings worth filling in
 
 About panel (gear icon on the repo homepage):
-- Description: "Schema-aware SQL generator — Groq generates the query, sql.js verifies it live in-browser."
+- Description: "Schema-aware SQL generator Groq generates the query, sql.js verifies it live in-browser."
 - Website: your deployed URL once you have one
 - Topics: sql, llm, groq, sqlite, webassembly, sql-js, static-site, ai-tools
 
@@ -114,7 +116,7 @@ Since it's static, you can host it here too instead of/alongside Hugging Face:
 
 Settings → Pages → Deploy from a branch → `main`, root. Publishes to `https://<your-username>.github.io/queryforge/`.
 
-Same API key exposure applies here as anywhere else static — if you put a real key in `script.js` on the deployed copy, it's visible in page source.
+Same API key exposure applies here as anywhere else static if you put a real key in `script.js` on the deployed copy, it's visible in page source.
 
 ## Reference
 
