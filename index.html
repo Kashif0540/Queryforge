@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>QueryForge — Schema-Aware SQL Generator</title>
+<meta name="description" content="Describe your data question in plain English. Get schema-aware SQL from Groq, explained and verified live in your browser with sql.js." />
+
+<!-- Google Fonts: one coherent technical type family (IBM Plex) instead of three unrelated ones -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- highlight.js theme: github-dark, matched deliberately to the app's own GitHub-inspired palette -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+
+<style>
+  /* ============================================================
+     DESIGN TOKENS
+     A restrained, single-accent palette borrowed from real dev-tool
+     UI (GitHub / Linear / DataGrip) rather than a marketing gradient.
+     ============================================================ */
+  :root {
+    --ink-950: #0d1117;   /* page background */
+    --ink-900: #12161d;   /* panel background */
+    --ink-850: #161b22;   /* raised surface (inputs, code blocks) */
+    --ink-800: #21262d;   /* borders */
+    --ink-750: #30363d;   /* stronger borders / dividers */
+
+    --paper: #e6edf3;     /* primary text */
+    --muted: #8b949e;     /* secondary text */
+    --faint: #565d68;     /* placeholder / tertiary text */
+
+    --accent: #2f81f7;        /* the one accent color, used sparingly */
+    --accent-dim: #1f6feb;
+    --accent-wash: rgba(47, 129, 247, 0.12);
+
+    --signal-green: #3fb950;
+    --signal-green-wash: rgba(63, 185, 80, 0.1);
+    --signal-red: #f85149;
+    --signal-red-wash: rgba(248, 81, 73, 0.1);
+    --signal-amber: #d29922;
+    --signal-amber-wash: rgba(210, 153, 34, 0.1);
+
+    --font-sans: 'IBM Plex Sans', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+
+    --radius-lg: 10px;
+    --radius-md: 8px;
+    --radius-sm: 6px;
+  }
+
+  /* ============================================================
+     RESET & BASE
+     ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: var(--font-sans);
+    font-size: 15px;
+    color: var(--paper);
+    background-color: var(--ink-950);
+    /* A faint, static dot grid rather than an animated gradient wash —
+       reads as "structured data" without any decorative motion. */
+    background-image: radial-gradient(circle, rgba(230, 237, 243, 0.05) 1px, transparent 1px);
+    background-size: 22px 22px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--accent-dim); color: #fff; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+
+  /* ============================================================
+     APP SHELL
+     ============================================================ */
+  .app-shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 24px 48px;
+  }
+
+  /* ============================================================
+     TOP BAR (replaces the marketing hero)
+     ============================================================ */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--ink-800);
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .brand-mark {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+    background: var(--accent);
+    color: #041426;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: -0.02em;
+  }
+
+  .brand-text { display: flex; flex-direction: column; gap: 2px; }
+
+  .brand-name {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--paper);
+    letter-spacing: -0.01em;
+  }
+
+  .brand-tagline {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .topbar-status {
+    display: flex;
+    gap: 8px;
+  }
+
+  .status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    background: var(--ink-850);
+    border: 1px solid var(--ink-800);
+    padding: 5px 10px;
+    border-radius: 999px;
+  }
+
+  .chip-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .chip-dot-ok { background: var(--signal-green); }
+
+  /* Thin top progress bar shown while a request is in flight —
+     a functional loading cue borrowed from real web apps, not a
+     decorative spinner-in-a-glow. */
+  .progress-bar {
+    height: 2px;
+    width: 100%;
+    background: var(--ink-800);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .progress-bar::after {
+    content: '';
+    display: block;
+    height: 100%;
+    width: 40%;
+    background: var(--accent);
+    animation: progressSlide 1.1s ease-in-out infinite;
+  }
+  @keyframes progressSlide {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(350%); }
+  }
+
+  /* ============================================================
+     WORKBENCH GRID
+     ============================================================ */
+  .workbench {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: 20px;
+    align-items: start;
+  }
+
+  @media (max-width: 880px) {
+    .workbench { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--ink-900);
+    border: 1px solid var(--ink-800);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--ink-800);
+    background: var(--ink-850);
+  }
+
+  .step-number {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--faint);
+    letter-spacing: 0.04em;
+  }
+
+  .panel-title {
+    font-family: var(--font-sans);
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: var(--paper);
+    margin: 0;
+  }
+
+  .panel-body { padding: 22px; }
+
+  .subheading {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin: 22px 0 10px;
+  }
+
+  /* ============================================================
+     FORM FIELDS
+     ============================================================ */
+  .field-label {
+    display: block;
+    font-size: 0.83rem;
+    font-weight: 500;
+    color: var(--muted);
+    margin: 18px 0 7px;
+  }
+  .field-label:first-of-type { margin-top: 0; }
+
+  .required { color: var(--accent); font-weight: 600; }
+  .optional { color: var(--faint); font-weight: 400; font-size: 0.78rem; }
+
+  .field-textarea, .field-select {
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--paper);
+    background: var(--ink-850);
+    border: 1px solid var(--ink-800);
+    border-radius: var(--radius-sm);
+    padding: 11px 13px;
+    resize: vertical;
+    line-height: 1.55;
+    transition: border-color 0.15s ease;
+  }
+
+  .field-textarea::placeholder { color: var(--faint); }
+
+  .field-textarea:focus, .field-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-wash);
+  }
+
+  .field-select {
+    font-family: var(--font-sans);
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+                       linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    padding-right: 36px;
+  }
+
+  .field-select option { background: var(--ink-850); color: var(--paper); }
+
+  .field-row { display: flex; gap: 16px; margin-top: 6px; flex-wrap: wrap; }
+  .field-group { flex: 1; min-width: 160px; }
+
+  /* ============================================================
+     BUTTONS — flat, single accent, no gradients
+     ============================================================ */
+  .action-row { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+
+  .btn {
+    font-family: var(--font-sans);
+    font-size: 0.87rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    padding: 10px 18px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .btn-primary {
+    color: #041426;
+    background: var(--accent);
+    flex: 1;
+  }
+  .btn-primary:hover:not(:disabled) { background: #5195f8; }
+
+  .btn-secondary {
+    color: var(--paper);
+    background: var(--ink-850);
+    border-color: var(--ink-750);
+    width: 100%;
+  }
+  .btn-secondary:hover:not(:disabled) { border-color: var(--accent); }
+
+  .btn-ghost {
+    color: var(--muted);
+    background: transparent;
+    border-color: var(--ink-800);
+  }
+  .btn-ghost:hover:not(:disabled) { color: var(--paper); border-color: var(--ink-750); }
+
+  .btn-small {
+    font-size: 0.78rem;
+    padding: 6px 12px;
+    color: var(--muted);
+    background: var(--ink-850);
+    border-color: var(--ink-800);
+  }
+  .btn-small:hover:not(:disabled) { color: var(--paper); border-color: var(--ink-750); }
+
+  .spinner {
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    border: 2px solid rgba(4, 20, 38, 0.3);
+    border-top-color: currentColor;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+  .btn-secondary .spinner, .btn-small .spinner {
+    border: 2px solid rgba(230, 237, 243, 0.2);
+    border-top-color: var(--accent);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ============================================================
+     STATUS TEXT
+     ============================================================ */
+  .status-text { min-height: 20px; font-size: 0.82rem; margin: 14px 0 0; line-height: 1.5; }
+  .status-text.info { color: var(--accent); }
+  .status-text.error { color: var(--signal-red); }
+  .status-text.success { color: var(--signal-green); }
+
+  /* ============================================================
+     OUTPUT PANEL
+     ============================================================ */
+  .output-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 12px; margin-bottom: 14px; flex-wrap: wrap;
+  }
+
+  .tables-used { display: flex; gap: 7px; flex-wrap: wrap; }
+
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: var(--accent);
+    background: var(--accent-wash);
+    border: 1px solid rgba(47, 129, 247, 0.25);
+    padding: 3px 9px;
+    border-radius: var(--radius-sm);
+  }
+
+  .sql-block {
+    margin: 0;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--ink-800);
+    overflow: auto;
+    max-height: 320px;
+    background: var(--ink-850) !important;
+  }
+
+  .sql-block code.hljs {
+    background: transparent !important;
+    font-family: var(--font-mono) !important;
+    font-size: 0.84rem;
+    padding: 15px !important;
+    display: block;
+    line-height: 1.6;
+  }
+
+  .explanation-text { font-size: 0.9rem; color: var(--muted); line-height: 1.65; margin: 0; }
+
+  .run-row { margin-top: 22px; }
+
+  /* ============================================================
+     RESULTS GRID — the signature element.
+     Styled like a real database client's output pane: a row-number
+     gutter, monospace values, subtle zebra striping. This is the one
+     place the app is proving something true, so it gets the most
+     deliberate treatment on the page.
+     ============================================================ */
+  .results-container { margin-top: 18px; }
+
+  .error-box {
+    border: 1px solid rgba(248, 81, 73, 0.3);
+    background: var(--signal-red-wash);
+    border-radius: var(--radius-md);
+    padding: 13px 15px;
+  }
+  .error-box strong { display: block; color: var(--signal-red); font-size: 0.86rem; margin-bottom: 4px; }
+  .error-box p { margin: 0; font-size: 0.83rem; color: var(--muted); line-height: 1.55; }
+
+  .note-box {
+    border: 1px solid rgba(210, 153, 34, 0.3);
+    background: var(--signal-amber-wash);
+    border-radius: var(--radius-md);
+    padding: 11px 15px;
+    font-size: 0.81rem;
+    color: var(--muted);
+    margin-bottom: 14px;
+    line-height: 1.55;
+  }
+  .note-box strong { color: var(--signal-amber); }
+
+  .success-box {
+    border: 1px solid rgba(63, 185, 80, 0.3);
+    background: var(--signal-green-wash);
+    border-radius: var(--radius-md);
+    padding: 11px 15px;
+    font-size: 0.83rem;
+    color: var(--muted);
+  }
+  .success-box strong { color: var(--signal-green); }
+
+  .table-scroll {
+    overflow: auto;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--ink-800);
+    max-height: 340px;
+  }
+
+  table.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
+  .results-table thead th {
+    position: sticky;
+    top: 0;
+    background: var(--ink-850);
+    color: var(--paper);
+    font-weight: 500;
+    text-align: left;
+    padding: 9px 13px;
+    border-bottom: 1px solid var(--ink-800);
+    white-space: nowrap;
+  }
+
+  .results-table thead th.col-rownum {
+    color: var(--faint);
+    width: 1%;
+  }
+
+  .results-table tbody td {
+    padding: 8px 13px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--ink-800);
+    white-space: nowrap;
+  }
+
+  .results-table tbody td.col-rownum {
+    color: var(--faint);
+    background: var(--ink-850);
+    text-align: right;
+    user-select: none;
+  }
+
+  .results-table tbody tr:nth-child(even) td:not(.col-rownum) { background: rgba(255, 255, 255, 0.015); }
+  .results-table tbody tr:hover td:not(.col-rownum) { background: var(--accent-wash); }
+
+  .results-meta { margin-top: 9px; font-size: 0.76rem; color: var(--faint); font-family: var(--font-mono); }
+
+  /* ============================================================
+     FOOTER
+     ============================================================ */
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 0.8rem;
+    color: var(--faint);
+    line-height: 1.6;
+  }
+  .footer a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+  .footer a:hover { color: var(--paper); }
+
+  /* Scrollbar polish */
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--ink-750); border-radius: 8px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+</style>
+</head>
+<body>
+
+  <div class="app-shell">
+
+    <header class="topbar">
+      <div class="topbar-brand">
+        <span class="brand-mark" aria-hidden="true">QF</span>
+        <div class="brand-text">
+          <span class="brand-name">QueryForge</span>
+          <span class="brand-tagline">Schema-aware SQL, generated and verified in your browser</span>
+        </div>
+      </div>
+      <div class="topbar-status">
+        <span class="status-chip"><span class="chip-dot chip-dot-ok"></span>Groq</span>
+        <span class="status-chip"><span class="chip-dot chip-dot-ok"></span>sql.js</span>
+      </div>
+    </header>
+
+    <div class="progress-bar" id="progressBar" hidden></div>
+
+    <main class="workbench">
+
+      <!-- ============================================================
+           INPUT PANEL
+           ============================================================ -->
+      <section class="panel input-panel">
+        <div class="panel-head">
+          <span class="step-number">01</span>
+          <h2 class="panel-title">Describe your database</h2>
+        </div>
+
+        <div class="panel-body">
+          <label class="field-label" for="schemaInput">Schema <span class="required">*</span></label>
+          <textarea
+            id="schemaInput"
+            class="field-textarea"
+            rows="7"
+            placeholder="CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT, signup_date TEXT);
+CREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER, total REAL, order_date TEXT);"
+          ></textarea>
+
+          <label class="field-label" for="sampleDataInput">
+            Sample data <span class="optional">(optional — paste INSERT statements to run queries live)</span>
+          </label>
+          <textarea
+            id="sampleDataInput"
+            class="field-textarea"
+            rows="5"
+            placeholder="INSERT INTO customers VALUES (1, 'Amara Khan', '2025-11-02');
+INSERT INTO orders VALUES (1, 1, 89.50, '2026-07-01');"
+          ></textarea>
+
+          <label class="field-label" for="questionInput">Your question <span class="required">*</span></label>
+          <textarea
+            id="questionInput"
+            class="field-textarea"
+            rows="3"
+            placeholder="e.g. Which 5 customers have spent the most in total?"
+          ></textarea>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label" for="dialectSelect">SQL dialect</label>
+              <select id="dialectSelect" class="field-select">
+                <option value="sqlite">SQLite</option>
+                <option value="mysql">MySQL</option>
+                <option value="postgresql">PostgreSQL</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <button id="generateBtn" class="btn btn-primary" type="button">
+              <span class="spinner" id="generateSpinner" hidden></span>
+              <span class="btn-label">Generate SQL</span>
+            </button>
+            <button id="clearBtn" class="btn btn-ghost" type="button">Clear all</button>
+          </div>
+
+          <p id="statusText" class="status-text" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           OUTPUT PANEL
+           ============================================================ -->
+      <section class="panel output-panel">
+        <div class="panel-head">
+          <span class="step-number">02</span>
+          <h2 class="panel-title">Generated query</h2>
+        </div>
+
+        <div class="panel-body">
+          <div class="output-header">
+            <div class="tables-used" id="tablesUsedList"></div>
+            <div class="output-actions">
+              <button id="copyBtn" class="btn btn-small" type="button" disabled>Copy SQL</button>
+            </div>
+          </div>
+
+          <pre class="sql-block"><code id="sqlOutput" class="language-sql">-- Your generated SQL will appear here</code></pre>
+
+          <h3 class="subheading">Explanation</h3>
+          <p id="explanationOutput" class="explanation-text">
+            Fill in a schema and a question on the left, then click "Generate SQL".
+          </p>
+
+          <div class="run-row">
+            <button id="runBtn" class="btn btn-secondary" type="button" disabled>
+              <span class="spinner" id="runSpinner" hidden></span>
+              <span class="btn-label">Run query</span>
+            </button>
+          </div>
+
+          <div id="resultsContainer" class="results-container"></div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <p>
+        SQL is generated by an LLM (Groq) and independently verified in-browser with
+        <a href="https://github.com/sql-js/sql.js" target="_blank" rel="noopener">sql.js</a>.
+        Always review generated SQL before running it against real data.
+      </p>
+    </footer>
+
+  </div>
+
+  <!-- highlight.js — SQL syntax highlighting for the output block -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <!-- sql.js — SQLite compiled to WebAssembly, used to execute queries live -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.5.0/sql-wasm.js"></script>
+
+  <script src="script.js"></script>
+</body>
+</html>
