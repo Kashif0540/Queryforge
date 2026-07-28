@@ -10,7 +10,7 @@ Assumes you've got `index.html`, `script.js` and `PROJECT.md` locally.
 screenshots
 -->
 
-![QueryForge — input panel](./screenshots/input-panel.png)
+![QueryForge — screenshots](./screenshots/input-panel.png)
 ![QueryForge — generated query and results](./screenshots/results-panel.png)
 
 ## Prereqs
