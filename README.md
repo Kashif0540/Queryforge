@@ -14,6 +14,7 @@ Assumes you've got `index.html`, `script.js` and `PROJECT.md` locally.
 
 ![QueryForge — screenshots](./screenshots/ss1.jpeg)
 ![QueryForge — generated query and results](./screenshots/ss2.jpeg)
+![QueryForge — screenshots](./screenshots/ss3.jpeg)
 
 ## Prereqs
 
