@@ -6,6 +6,15 @@ Full project details, features, and usage are in [PROJECT.md](./PROJECT.md). Thi
 
 Assumes you've got `index.html`, `script.js` and `PROJECT.md` locally.
 
+<!--
+  Add your screenshots to a `screenshots/` folder in the repo root, then
+  update the paths below to match your actual filenames. Delete this
+  comment once done.
+-->
+
+![QueryForge — input panel](./screenshots/input-panel.png)
+![QueryForge — generated query and results](./screenshots/results-panel.png)
+
 ## Prereqs
 
 - Git installed (`git --version`)
