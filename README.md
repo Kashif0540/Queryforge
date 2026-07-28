@@ -7,9 +7,9 @@ Full project details, features, and usage are in [PROJECT.md](./PROJECT.md). Thi
 Assumes you've got `index.html`, `script.js` and `PROJECT.md` locally.
 
 <!--
-  Add your screenshots to a `screenshots/` folder in the repo root, then
+[  Add your screenshots to a `screenshots/` folder in the repo root, then
   update the paths below to match your actual filenames. Delete this
-  comment once done.
+  comment once done.](https://github.com/Kashif0540/QueryForge/tree/main/screenshots)
 -->
 
 ![QueryForge — input panel](./screenshots/input-panel.png)
