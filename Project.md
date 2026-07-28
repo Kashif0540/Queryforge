@@ -12,11 +12,11 @@ license: mit
 
 QueryForge turns a database schema and a plain-English question into a SQL query — then actually runs that query against real data before showing it to you.
 
-Most LLM-based SQL generators stop at the model's output: you get a string of SQL and you're trusting it's correct. QueryForge doesn't stop there. After Groq (in JSON mode) generates the query, an explanation, and the tables it used, [sql.js](https://github.com/sql-js/sql.js) — SQLite compiled to WebAssembly — executes that exact SQL in your browser against the sample data you provide. If the query is wrong, you get a real error or an empty result set, not just plausible-looking text.
+Most LLM-based SQL generators stop at the model's output: you get a string of SQL and you're trusting it's correct. QueryForge doesn't stop there. After Groq (in JSON mode) generates the query, an explanation, and the tables it used, [sql.js](https://github.com/sql-js/sql.js) — SQLite compiled to WebAssembly, executes that exact SQL in your browser against the sample data you provide. If the query is wrong, you get a real error or an empty result set, not just plausible-looking text.
 
 That verification step is the core of this project. LLMs hallucinate column names, misjudge joins, and confidently produce syntax that doesn't run. QueryForge catches that before you copy a query into anything that matters.
 
-It is a single static site — HTML, CSS, and JavaScript, no backend, no build step, no framework — designed to run as-is on a Hugging Face **Static** Space or any plain file server.
+It is a single static site HTML, CSS, and JavaScript, no backend, no build step, no framework — designed to run as-is on a Hugging Face **Static** Space or any plain file server.
 
 ---
 
@@ -117,7 +117,7 @@ There is no `app.py`, `requirements.txt`, `Dockerfile`, or frontend framework of
 
 ## Getting started
 
-> Setting this up as a fresh GitHub repository (creating it, adding a license, first push, repo settings)? See [REPO_SETUP.md](./REPO_SETUP.md) instead — this section covers running the app itself, not the repo around it.
+> Setting this up as a fresh GitHub repository (creating it, adding a license, first push, repo settings)? See [REPO_SETUP.md](./REPO_SETUP.md) instead, this section covers running the app itself, not the repo around it.
 
 ### Prerequisites
 
