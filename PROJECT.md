@@ -10,9 +10,9 @@ license: mit
 
 # QueryForge
 
-QueryForge turns a database schema and a plain-English question into a SQL query — then actually runs that query against real data before showing it to you.
+QueryForge turns a database schema and a plain-English question into a SQL query then actually runs that query against real data before showing it to you.
 
-Most LLM-based SQL generators stop at the model's output: you get a string of SQL and you're trusting it's correct. QueryForge doesn't stop there. After Groq (in JSON mode) generates the query, an explanation, and the tables it used, [sql.js](https://github.com/sql-js/sql.js) — SQLite compiled to WebAssembly, executes that exact SQL in your browser against the sample data you provide. If the query is wrong, you get a real error or an empty result set, not just plausible-looking text.
+Most LLM-based SQL generators stop at the model's output: you get a string of SQL and you're trusting it's correct. QueryForge doesn't stop there. After Groq (in JSON mode) generates the query, an explanation, and the tables it used, [sql.js](https://github.com/sql-js/sql.js) SQLite compiled to WebAssembly, executes that exact SQL in your browser against the sample data you provide. If the query is wrong, you get a real error or an empty result set, not just plausible-looking text.
 
 That verification step is the core of this project. LLMs hallucinate column names, misjudge joins, and confidently produce syntax that doesn't run. QueryForge catches that before you copy a query into anything that matters.
 
@@ -81,7 +81,7 @@ No data leaves your machine except what's sent to Groq for generation (your sche
 - Dialect-aware generation for MySQL, PostgreSQL, and SQLite, with honest handling of the fact that live execution is SQLite-only
 - Syntax-highlighted SQL output (highlight.js), one-click copy-to-clipboard, and a full reset button
 - A results grid styled like a real database client's output pane — row-number gutter, monospace values, zebra striping — instead of a generic HTML table dump
-- Readable, specific error handling for invalid API keys, rate limits, network failures, malformed model output, schema errors, sample-data errors, and SQL execution errors — each with its own message
+- Readable, specific error handling for invalid API keys, rate limits, network failures, malformed model output, schema errors, sample-data errors, and SQL execution errors each with its own message
 - Buttons and a top progress bar disable/enable themselves automatically during generation and execution
 - Responsive layout down to mobile, with a restrained, single-accent visual design (no decorative gradients or ambient animation)
 - 100% static: three files, no backend, no build step, no dependencies to install
@@ -105,7 +105,7 @@ No data leaves your machine except what's sent to Groq for generation (your sche
 ├── index.html        # Markup + all CSS (inline <style>) + CDN <script>/<link> tags
 ├── script.js         # All application logic: Groq API calls, JSON parsing,
 │                     # sql.js execution, UI state, event wiring
-├── README.md         # This file — what the project is and how to use it
+├── README.md         # This file what the project is and how to use it
 ├── LICENSE           # MIT license text
 ├── .gitignore        # Excludes OS/editor clutter from version control
 └── REPO_SETUP.md     # One-time walkthrough for creating and configuring the GitHub repo
@@ -152,7 +152,7 @@ Then open `http://localhost:8000` in your browser. Opening `index.html` directly
 
 1. **Schema** *(required)* — paste one or more `CREATE TABLE` statements describing your database.
 2. **Sample data** *(optional, but required to run queries live)* — paste matching `INSERT` statements.
-3. **Your question** *(required)* — ask what you want to know, in plain English (e.g. "Which 5 customers have spent the most in total?").
+3. **Your question** *(required)* ask what you want to know, in plain English (e.g. "Which 5 customers have spent the most in total?").
 4. **SQL dialect** — choose MySQL, PostgreSQL, or SQLite.
 5. Click **Generate SQL**. Groq returns a query, a plain-English explanation, and the tables it used, shown with syntax highlighting.
 6. Click **Run query** to execute that exact SQL against your pasted sample data using sql.js, and see the real result set (or a specific error) rendered as a table.
