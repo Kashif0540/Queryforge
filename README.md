@@ -1,6 +1,3 @@
-# Queryforge
-Schema-aware SQL generator, Groq generates the query, sql.js verifies it live in-browser.
-
 ---
 title: QueryForge - Schema-Aware SQL Generator
 emoji: 🛠️
